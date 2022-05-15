@@ -35,9 +35,9 @@ contract BridgeContract is Ownable{
     constructor(){
     }
 
-    function setTokenAddress (address _input) public onlyOwner {
-        TokenAddress = _input;
-    }
+    // function setTokenAddress (address _input) public onlyOwner {
+    //     TokenAddress = _input;
+    // }
 
     function swap (address _fromToken, address _toToken, uint _amount, uint _tochainID) public {
         if((_fromToken == address(0)) || (_toToken == address(0))) 

@@ -22,13 +22,21 @@ async function main() {
   console.log("BridgeContract deployed to:", bridgeContract.address);
 
 
-  const TokenNetwork = await ethers.getContractFactory("TokenNetwork");
-  const tokenNetwork = await TokenNetwork.deploy();
+  const TokenNetworkETH = await ethers.getContractFactory("TokenNetwork");
+  const tokenNetworkETH = await TokenNetworkETH.deploy();
 
-  await tokenNetwork.deployed();
+  await tokenNetworkETH.deployed();
 
-  console.log("tokenNetwork deployed to:", tokenNetwork.address);
+  console.log("tokenNetworkETH deployed to:", tokenNetworkETH.address);
 
+
+
+  const TokenNetworkBSC = await ethers.getContractFactory("TokenNetwork");
+  const tokenNetworkBSC = await TokenNetworkBSC.deploy();
+
+  await tokenNetworkBSC.deployed();
+
+  console.log("TokenNetworkBSC deployed to:", tokenNetworkBSC.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

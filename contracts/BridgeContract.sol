@@ -52,54 +52,37 @@ contract BridgeContract is Ownable{
         emit swapInitialized(msg.sender, _toToken, _amount, _tochainID, _nonce.current());
     }
 
-    function redeem(address _sender, address _toToken, uint _amount, uint _tochainID, uint _Nonce, bytes memory _signature) public{
-        if(!transactionCompleted[_tochainID][_toToken][_Nonce])
+    function redeem(address _sender, address _toToken, uint _amount, uint _tochainID, uint _Nonce, uint8 v, bytes32 r, bytes32 s) public{
+        if(transactionCompleted[_tochainID][_toToken][_Nonce])
             revert doublespenderror();
-        bytes32 message = prefixed(keccak256(abi.encodePacked(_sender, _toToken, _amount, _tochainID, _Nonce)));
-        if(recoverSigner(message, _signature) != _sender)
-            revert wrongsignatureerror();
+        if(checkSign(_sender, _toToken, _amount, _tochainID, _Nonce, v, r, s) == true){
         transactionCompleted[_tochainID][_toToken][_Nonce] = true;
         ITokenNetwork(_toToken).mint(_sender, _amount);
+        }
+        else{
+            revert wrongsignatureerror();
+        }
     }
 
+    function checkSign(address _sender,address _toToken, uint256 _amount, uint256 _tochainID, uint256 _Nonce, uint8 v, bytes32 r, bytes32 s ) public view returns (bool) {
+        bytes32 message = keccak256(abi.encodePacked(_sender, _toToken, _amount, _tochainID, _Nonce));
+        address addr = ecrecover(hashMessage(message), v, r, s);
+        if (addr == _sender) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
-  function prefixed(bytes32 hash) internal pure returns (bytes32) {
+  function hashMessage(bytes32 hash) internal pure returns (bytes32) {
     return keccak256(abi.encodePacked(
       '\x19Ethereum Signed Message:\n32', 
       hash
     ));
   }
 
-  function recoverSigner(bytes32 message, bytes memory sig)
-    internal
-    pure
-    returns (address)
-  {
-    uint8 v;
-    bytes32 r;
-    bytes32 s;
-  
-    (v, r, s) = splitSignature(sig);
-  
-    return ecrecover(message, v, r, s);
-  }
 
-  function splitSignature(bytes memory sig) internal pure returns (uint8, bytes32, bytes32)
-  {
-    require(sig.length == 65);
-    bytes32 r;
-    bytes32 s;
-    uint8 v;
-  
-    assembly {
-        r := mload(add(sig, 32))
-        s := mload(add(sig, 64))
-        v := byte(0, mload(add(sig, 96)))
-    }
-    return (v, r, s);
-  }
-
-    function updateChainById(uint _chainID, bool _action) public onlyOwner{
+    function updateChainById(uint _chainID, bool _action) public onlyOwner returns(bool){
         if(_chainID == 0)
             revert incorrectChainID();
         if((_action == false) && (bridges[_chainID].chainID != _chainID))
@@ -111,9 +94,10 @@ contract BridgeContract is Ownable{
         else{
             bridges[_chainID].chainID = 0;
         }
+        return true;
     }
 
-    function includeToken(uint _chainID, address _token) public onlyOwner{
+    function includeToken(uint _chainID, address _token) public onlyOwner returns(bool){
         if(_token == address(0))
             revert incorrectaddress();
         if(bridges[_chainID].permittedToken[_token])
@@ -121,9 +105,11 @@ contract BridgeContract is Ownable{
 
         updateChainById(_chainID, true);
         bridges[_chainID].permittedToken[_token] = true;
+
+        return true;
     }
 
-    function excludeToken(uint _chainID, address _token) public onlyOwner{
+    function excludeToken(uint _chainID, address _token) public onlyOwner returns(bool){
         if(_token == address(0))
             revert incorrectaddress();
         if((bridges[_chainID].chainID == 0) || _chainID == 0)
@@ -132,6 +118,8 @@ contract BridgeContract is Ownable{
             revert nonexistToken(_token, false);
 
         bridges[_chainID].permittedToken[_token] = false;
+        
+        return true;
     }
 
 }

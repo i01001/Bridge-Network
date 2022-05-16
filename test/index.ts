@@ -62,6 +62,8 @@ describe("Testing the Bridge Network Contract", () =>{
       })
 
       it("Checks the includeToken function of the Bridge Contract is working correctly or not", async () => {
+        expect(bC.connect(owner).includeToken(31337, "0x0000000000000000000000000000000000000000")).to.be.reverted;
+        expect(bC.connect(owner).includeToken(0, signertwo.address)).to.be.reverted;
         expect(bC.connect(owner).includeToken(31337, tNETH.address)).to.be.revertedWith("true");
       })
 
@@ -82,13 +84,15 @@ describe("Testing the Bridge Network Contract", () =>{
       it("Checks the redeem function of the Bridge Contract is working correctly or not", async () => {
         let msg = ethers.utils.solidityKeccak256(["address", "address", "uint256", "uint256", "uint256"], [owner.address, tNBSC.address, 1000, 31337, 1]);
         let signature = await owner.signMessage(ethers.utils.arrayify(msg));
-        console.log(signature);
         let split = await ethers.utils.splitSignature(signature);
-
-        let testing = await bC.connect(owner).redeem(owner.address, tNBSC.address, 1000, 31337, 1, split.v, split.r, split.s);
-        console.log(testing);
+        await bC.connect(owner).redeem(owner.address, tNBSC.address, 1000, 31337, 1, split.v, split.r, split.s);
         expect(await tNBSC.balanceOf(owner.address)).to.be.equal(1000);
       })
+
+      it("Checks the excludeToken function is working correctly or not", async () => {
+        bC.connect(owner).excludeToken(31337, tNBSC.address);
+        expect(bC.connect(owner).excludeToken(31337, tNBSC.address)).to.be.reverted;
+           })
 
       
       })

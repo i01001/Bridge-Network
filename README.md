@@ -1,4 +1,11 @@
-# Advanced Sample Hardhat Project
+# Crypto Bridge Network
+
+This project allows the user to transfer ERC20 tokens from one contract to another across the complete EVM network including cross chain.
+
+
+
+
+
 
 This project demonstrates an advanced Hardhat use case, integrating other tools commonly used alongside Hardhat in the ecosystem.
 
